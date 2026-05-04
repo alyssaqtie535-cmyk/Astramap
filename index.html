@@ -1,0 +1,519 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ASTRAMAP - Campus Navigator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+            padding: 30px 28px 34px;
+            transition: all 0.3s ease;
+        }
+
+        /* Logo & Header Section */
+        .logo-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo-image {
+            display: block;
+            width: min(300px, 76vw);
+            height: auto;
+            margin: 0 auto 18px;
+        }
+
+        h1 {
+            font-size: 34px;
+            margin: 0;
+            color: #111827;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #4b5563;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px 18px;
+            font-size: 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.2s;
+            font-family: inherit;
+            background: #ffffff;
+            color: #111827;
+        }
+
+        input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        input::placeholder {
+            color: #94a3b8;
+        }
+
+        button {
+            background: #1f2937;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #111827;
+        }
+
+        .result-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #2563eb;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+        }
+
+        .result-card.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .building-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .floor-info {
+            font-size: 18px;
+            color: #334155;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .floor-badge {
+            display: inline-block;
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .map-container {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-top: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .building-photo {
+            display: block;
+            max-width: 100%;
+            width: 100%;
+            max-height: 340px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #ffffff;
+            margin-top: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .directions {
+            color: #334155;
+            line-height: 1.5;
+            margin: 0 0 12px;
+        }
+
+        .area-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .area-pill {
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .legend {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .quick-btn {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #334155;
+        }
+
+        .quick-btn:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .error {
+            color: #f87171;
+            text-align: center;
+            padding: 10px;
+            display: none;
+            background: #fef2f2;
+            border-radius: 8px;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .qr-note {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+        }
+
+        .credit-note {
+            margin-top: 10px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Logo Section -->
+    <div class="logo-header">
+        <img class="logo-image" src="Faith.png" alt="School logo">
+        <h1>ASTRAMAP</h1>
+    </div>
+    <div class="subtitle">Scan QR - Search office - Find building and floor</div>
+
+    <!-- Quick suggestion buttons -->
+    <div class="quick-links">
+        <button class="quick-btn" data-search="registrar">Registrar</button>
+        <button class="quick-btn" data-search="library">Library</button>
+        <button class="quick-btn" data-search="quality assurance">Quality Assurance</button>
+        <button class="quick-btn" data-search="gallery">Gallery</button>
+        <button class="quick-btn" data-search="fcs food court">FCS Food Court</button>
+        <button class="quick-btn" data-search="computer lab">Computer Lab</button>
+        <button class="quick-btn" data-search="basketball court">Basketball Court</button>
+    </div>
+
+    <!-- Search area -->
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search: registrar, library, canteen, lab..." autocomplete="off">
+        <button id="searchBtn">Search</button>
+    </div>
+
+    <!-- Result display -->
+    <div id="resultCard" class="result-card">
+        <div class="building-name" id="buildingName"></div>
+        <div class="floor-info" id="floorInfo"></div>
+        <div class="map-container">
+            <div id="mapTitle" style="font-weight: bold; margin-bottom: 8px; color: #111827;">ASTRAMAP Building Guide</div>
+            <p class="directions" id="directions"></p>
+            <img id="buildingPhoto" class="building-photo" src="" alt="">
+            <div class="area-list" id="areaList"></div>
+            <div class="legend" id="mapLegend"></div>
+        </div>
+    </div>
+
+    <div id="errorMsg" class="error">Location not found. Try: registrar, library, quality assurance, computer lab, basketball court</div>
+
+    <hr>
+
+    <div class="qr-note">
+        <strong>ASTRAMAP QR Ready</strong><br>
+        Scan and navigate your campus
+    </div>
+    <div class="credit-note">
+        By College of Engineering Batch 2022-2026<br>
+        CPE, EE, ECE, IE
+    </div>
+</div>
+
+<script>
+    // ============= ASTRAMAP DATABASE: Offices, Buildings, Floors, Photos =============
+    const buildingGuides = [
+        {
+            building: "Mabini Building",
+            image: "mabini building.png",
+            floors: {
+                "1st Floor": ["Clinic", "Lobby", "Atrium", "Comfort Rooms (Male & Female)", "EE Lab", "ECE Lab", "FSC Room", "Counselling Room", "Guidance Office"],
+                "2nd Floor": ["FCS Rooms", "MIS Room", "Comfort Rooms"],
+                "3rd Floor": ["Library", "Tertiary Rooms 301 to 318", "Comfort Rooms"],
+                "4th Floor": ["Faculty Office", "Physics Lab", "Chemistry Lab", "Microbiology Lab", "Computer Lab", "Room 401", "Room 402"]
+            }
+        },
+        {
+            building: "ISAAC",
+            image: "isaac.png",
+            floors: {
+                "Main Area": ["Badminton Court", "Basketball Court", "Volleyball Court", "Stage"]
+            }
+        },
+        {
+            building: "Multi Purpose Covered Court",
+            image: "multi purpose covered court.png",
+            floors: {
+                "Main Area": ["Basketball Court", "Volleyball Court", "Gym", "Table Tennis Area", "Comfort Rooms (Male and Female)", "Storage Room (Sports Equipment)", "Stage"]
+            }
+        },
+        {
+            building: "Space Lounge",
+            image: "space lounge.png",
+            floors: {
+                "1st Floor": ["Food Stalls", "FCS Food Court", "Comfort Rooms", "Tables and Chairs"],
+                "2nd Floor": ["Tables and Chairs"]
+            }
+        },
+        {
+            building: "Gallery",
+            image: "gallery.png",
+            floors: {
+                "Main Area": ["Gallery"]
+            }
+        },
+        {
+            building: "Faith Catholic School",
+            image: "faith catholic school.png",
+            floors: {
+                "Building": ["Faith Catholic School", "FCS"]
+            }
+        },
+        {
+            building: "Admin Building",
+            image: "Admin building.png",
+            floors: {
+                "1st Floor": ["Registrar", "Accounting", "Bookstore", "Cashier", "Restroom"]
+            }
+        },
+        {
+            building: "Bitspace",
+            image: "bitspace.png",
+            floors: {
+                "1st Floor": ["ATC", "Guard", "Microelectronics Lab", "7/11"],
+                "3rd Floor": ["Quality Assurance"]
+            }
+        }
+    ];
+
+    const aliases = {
+        "cr": "comfort rooms",
+        "comfort room": "comfort rooms",
+        "male comfort room": "comfort rooms",
+        "female comfort room": "comfort rooms",
+        "qa": "quality assurance",
+        "quality assurance office": "quality assurance",
+        "711": "7/11",
+        "7 eleven": "7/11",
+        "fcs room": "fcs rooms",
+        "fcs": "faith catholic school",
+        "fcs foodcourt": "fcs food court",
+        "food court": "fcs food court",
+        "fcs canteen": "fcs food court",
+        "tertiary room": "tertiary rooms",
+        "rooms 301": "tertiary rooms",
+        "room 318": "tertiary rooms",
+        "basketball": "basketball court",
+        "volleyball": "volleyball court",
+        "canteen": "food stalls"
+    };
+
+    const campusDB = {};
+
+    function normalizeText(text) {
+        return text.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9/]+/g, " ").trim();
+    }
+
+    function addLocation(searchName, guide, floorName, areaName) {
+        const key = normalizeText(searchName);
+        const areas = guide.floors[floorName] || Object.values(guide.floors).flat();
+        campusDB[key] = {
+            building: guide.building,
+            floorName,
+            room: areaName,
+            image: guide.image,
+            floorAreas: areas
+        };
+    }
+
+    buildingGuides.forEach(guide => {
+        Object.entries(guide.floors).forEach(([floorName, areas]) => {
+            areas.forEach(areaName => {
+                addLocation(areaName, guide, floorName, areaName);
+            });
+        });
+        addLocation(guide.building, guide, "Building", "Building entrance");
+    });
+
+    Object.entries(aliases).forEach(([alias, target]) => {
+        const targetLocation = campusDB[normalizeText(target)];
+        if (targetLocation) campusDB[normalizeText(alias)] = targetLocation;
+    });
+
+    // Main search function
+    function searchOffice() {
+        let query = normalizeText(document.getElementById('searchInput').value);
+        if (query === "") {
+            document.getElementById('errorMsg').classList.remove('show');
+            document.getElementById('resultCard').classList.remove('show');
+            return;
+        }
+
+        let office = campusDB[query];
+        if (!office) {
+            const keys = Object.keys(campusDB);
+            const match = keys.find(key => key.includes(query) || query.includes(key));
+            if (match) office = campusDB[match];
+        }
+
+        if (!office) {
+            document.getElementById('errorMsg').classList.add('show');
+            document.getElementById('resultCard').classList.remove('show');
+            return;
+        }
+
+        document.getElementById('errorMsg').classList.remove('show');
+        document.getElementById('resultCard').classList.add('show');
+
+        const isBuildingSearch = office.floorName === "Building";
+        document.getElementById('buildingName').textContent = office.building;
+        document.getElementById('floorInfo').innerHTML = isBuildingSearch
+            ? `Go to: <span class="floor-badge">${office.building}</span>`
+            : `Go to: <span class="floor-badge">${office.floorName}</span> &nbsp;|&nbsp; Location: ${office.room}`;
+        document.getElementById('directions').textContent = isBuildingSearch
+            ? `This is the ${office.building}. Search a room or area to see its exact floor.`
+            : `${office.room} is located in the ${office.building}, ${office.floorName}.`;
+
+        const photo = document.getElementById('buildingPhoto');
+        photo.src = office.image;
+        photo.alt = `${office.building} photo`;
+
+        const areaList = document.getElementById('areaList');
+        areaList.innerHTML = "";
+        office.floorAreas.forEach(area => {
+            const pill = document.createElement('span');
+            pill.className = 'area-pill';
+            pill.textContent = area;
+            areaList.appendChild(pill);
+        });
+
+        document.getElementById('mapLegend').textContent = `Showing ${office.building} photo and ${office.floorName} guide | ASTRAMAP`;
+    }
+
+    // Quick buttons
+    function setupQuickButtons() {
+        const btns = document.querySelectorAll('.quick-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const searchTerm = this.getAttribute('data-search');
+                document.getElementById('searchInput').value = searchTerm;
+                searchOffice();
+            });
+        });
+    }
+
+    function setupEnterKey() {
+        const input = document.getElementById('searchInput');
+        input.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchOffice();
+            }
+        });
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', searchOffice);
+    setupQuickButtons();
+    setupEnterKey();
+
+    console.log("ASTRAMAP loaded - Light Theme Active");
+</script>
+</body>
+</html>
